@@ -44,7 +44,6 @@ class JavaStatusPlayer:
     def __init__(self, name, id):
         self.name = name
         self.id = id
-
 def fixyplayers(input_string):
     # Use regular expressions to extract numerical values and sample parameter
     match = re.match(r"JavaStatusPlayers\(online=(\d+), max=(\d+), sample=(\[.*\])\)", input_string)
@@ -95,12 +94,14 @@ def getinfo(ip):
 start()
 file_path = "ipslist.txt"
 server_data = []
+counter = 0
 try:
     with open(file_path, 'r') as file:
         for line in file:
+            counter = counter + 1
             print("")
             the = line.replace("\n", "")
-            prCyan(f"Pinging {the}...")
+            prCyan(f"({counter}) Pinging {the}...")
             h = getinfo(line.strip())
             if "No server running on" in h:
                 prRed(h.replace("...", ""))
