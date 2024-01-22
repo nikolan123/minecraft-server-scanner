@@ -82,7 +82,8 @@ def getinfo(ip):
             'version': fixyversion(str(status.version)),
             'latency': f"{round(status.latency)}ms",
             'onlineplayers': fixyplayers(str(status.players)),
-            'motd': fixymotd(status.motd)
+            'motd': fixymotd(status.motd),
+            #'favicon': status.favicon
         }
         #print(status.players)
         json_object = json.dumps(server_info, indent=4)
