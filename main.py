@@ -1,4 +1,5 @@
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
+import concurrent.futures
 from mcstatus import JavaServer
 import enum
 import re
@@ -8,6 +9,7 @@ import json
 from pyfiglet import figlet_format
 import pyfiglet
 import codecs
+import signal
 
 # Printing functions
 def prRed(skk): print("\033[91m {}\033[00m" .format(skk))
@@ -18,6 +20,11 @@ def prPurple(skk): print("\033[95m {}\033[00m" .format(skk))
 def prCyan(skk): print("\033[96m {}\033[00m" .format(skk))
 def prLightGray(skk): print("\033[97m {}\033[00m" .format(skk))
 def prBlack(skk): print("\033[98m {}\033[00m" .format(skk))
+
+def handler(signum, frame):
+    prRed("\nExiting...")
+    exit(1)
+signal.signal(signal.SIGINT, handler)
 
 # Minecraft server status related functions
 class JavaStatusPlayer:
@@ -96,20 +103,28 @@ def start():
 def process_server(ip, counter):
     try:
         print("")
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(getinfo, ip.strip())
+            result = future.result(timeout=5)  # Set the timeout for each server
+
         prCyan(f"({counter}) Pinging {ip}...")
-        server_info = getinfo(ip.strip())
-        if "No server running on" in server_info:
-            prRed(server_info.replace("...", ""))
+        if "No server running on" in result:
+            prRed(result.replace("...", ""))
         else:
             prGreen("Server responded")
-            data = json.loads(server_info)
+            data = json.loads(result)
             return data
+
+    except TimeoutError:
+        prRed(f"Timeout occurred while pinging {ip}")
+        return None
     except Exception as e:
-        print(f"An error occurred for {ip}: {e}")
+        prRed(f"An error occurred for {ip}: {e}")
         return None
 
 file_path = "ips.txt"
 server_data = []
+start()
 
 try:
     with open(file_path, 'r') as file:
